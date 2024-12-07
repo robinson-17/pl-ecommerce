@@ -1,0 +1,531 @@
+1. Script SQL para criação do esquema do banco de dados:
+
+
+-- Criação do banco de dados
+CREATE DATABASE Ecommerce;
+USE Ecommerce;
+
+-- Tabela Cliente
+CREATE TABLE Cliente (
+    idCliente INT PRIMARY KEY AUTO_INCREMENT,
+    Nome VARCHAR(45) NOT NULL,
+    Email VARCHAR(45),
+    Telefone VARCHAR(15),
+    Endereco VARCHAR(100),
+    Tipo_Cliente ENUM('PF', 'PJ') NOT NULL
+);
+
+-- Tabela ClientePF
+CREATE TABLE ClientePF (
+    idCliente INT PRIMARY KEY,
+    Nome VARCHAR(45) NOT NULL,
+    CPF CHAR(11) UNIQUE NOT NULL,
+    DataNascimento DATE,
+    FOREIGN KEY (idCliente) REFERENCES Cliente(idCliente)
+);
+
+-- Tabela ClientePJ
+CREATE TABLE ClientePJ (
+    idCliente INT PRIMARY KEY,
+    Nome_Fantasia VARCHAR(45) NOT NULL,
+    CNPJ CHAR(14) UNIQUE NOT NULL,
+    FOREIGN KEY (idCliente) REFERENCES Cliente(idCliente)
+);
+
+-- Tabela Produto
+CREATE TABLE Produto (
+    idProduto INT PRIMARY KEY AUTO_INCREMENT,
+    Descricao VARCHAR(45) NOT NULL,
+    Categoria VARCHAR(45)
+);
+
+-- Tabela Estoque
+CREATE TABLE Estoque (
+    idEstoque INT PRIMARY KEY AUTO_INCREMENT,
+    Local VARCHAR(45)
+);
+
+-- Tabela Produto_has_Estoque
+CREATE TABLE Produto_has_Estoque (
+    Produto_idProduto INT,
+    Estoque_idEstoque INT,
+    Quantidade INT,
+    PRIMARY KEY (Produto_idProduto, Estoque_idEstoque),
+    FOREIGN KEY (Produto_idProduto) REFERENCES Produto(idProduto),
+    FOREIGN KEY (Estoque_idEstoque) REFERENCES Estoque(idEstoque)
+);
+
+-- Tabela Fornecedor
+CREATE TABLE Fornecedor (
+    idFornecedor INT PRIMARY KEY AUTO_INCREMENT,
+    RazaoSocial VARCHAR(45),
+    CNPJ CHAR(14) UNIQUE NOT NULL
+);
+
+-- Tabela Disponibilizado_produto
+CREATE TABLE Disponibilizado_produto (
+    Fornecedor_idFornecedor INT,
+    Produto_idProduto INT,
+    PRIMARY KEY (Fornecedor_idFornecedor, Produto_idProduto),
+    FOREIGN KEY (Fornecedor_idFornecedor) REFERENCES Fornecedor(idFornecedor),
+    FOREIGN KEY (Produto_idProduto) REFERENCES Produto(idProduto)
+);
+
+-- Tabela Pedido
+CREATE TABLE Pedido (
+    idPedido INT PRIMARY KEY AUTO_INCREMENT,
+    StatusPedido VARCHAR(45),
+    Descricao VARCHAR(100),
+    Cliente_idCliente INT,
+    FOREIGN KEY (Cliente_idCliente) REFERENCES Cliente(idCliente)
+);
+
+-- Tabela Relacao_Produto_Pedido
+CREATE TABLE Relacao_Produto_Pedido (
+    Produto_idProduto INT,
+    Pedido_idPedido INT,
+    Quantidade INT,
+    PRIMARY KEY (Produto_idProduto, Pedido_idPedido),
+    FOREIGN KEY (Produto_idProduto) REFERENCES Produto(idProduto),
+    FOREIGN KEY (Pedido_idPedido) REFERENCES Pedido(idPedido)
+);
+
+-- Tabela Pagamento
+CREATE TABLE Pagamento (
+    idPagamento INT PRIMARY KEY AUTO_INCREMENT,
+    FormaPagamento VARCHAR(45),
+    Detalhes VARCHAR(100)
+);
+
+-- Tabela Pedido_has_Pagamento
+CREATE TABLE Pedido_has_Pagamento (
+    Pedido_idPedido INT,
+    Pagamento_idPagamento INT,
+    PRIMARY KEY (Pedido_idPedido, Pagamento_idPagamento),
+    FOREIGN KEY (Pedido_idPedido) REFERENCES Pedido(idPedido),
+    FOREIGN KEY (Pagamento_idPagamento) REFERENCES Pagamento(idPagamento)
+);
+
+-- Tabela Entrega
+CREATE TABLE Entrega (
+    idEntrega INT PRIMARY KEY AUTO_INCREMENT,
+    CodRastreio VARCHAR(45),
+    Status VARCHAR(45),
+    Pedido_idPedido INT,
+    FOREIGN KEY (Pedido_idPedido) REFERENCES Pedido(idPedido)
+);
+
+
+
+2. Script SQL para persistência de dados (dados fictícios)
+
+
+-- Inserção de dados em Cliente
+INSERT INTO Cliente (Nome, Email, Telefone, Endereco, Tipo_Cliente)
+VALUES 
+('João Silva', 'joao@gmail.com', '11987654321', 'Rua A, 123', 'PF'),
+('Empresa ABC', 'abc@empresa.com', '1134567890', 'Av. B, 456', 'PJ');
+
+-- Inserção em ClientePF
+INSERT INTO ClientePF (idCliente, Nome, CPF, DataNascimento)
+VALUES 
+(1, 'João Silva', '12345678901', '1985-06-15');
+
+-- Inserção em ClientePJ
+INSERT INTO ClientePJ (idCliente, Nome_Fantasia, CNPJ)
+VALUES 
+(2, 'Empresa ABC', '12345678000199');
+
+-- Inserção de produtos
+INSERT INTO Produto (Descricao, Categoria)
+VALUES 
+('Notebook', 'Eletrônicos'),
+('Cadeira Gamer', 'Móveis');
+
+-- Inserção em Estoque
+INSERT INTO Estoque (Local)
+VALUES 
+('Armazém 1'), 
+('Armazém 2');
+
+-- Produtos em estoque
+INSERT INTO Produto_has_Estoque (Produto_idProduto, Estoque_idEstoque, Quantidade)
+VALUES 
+(1, 1, 20),
+(2, 2, 50);
+
+-- Inserção em Fornecedor
+INSERT INTO Fornecedor (RazaoSocial, CNPJ)
+VALUES 
+('Tech Supplies', '98765432000188');
+
+-- Fornecimento de produtos
+INSERT INTO Disponibilizado_produto (Fornecedor_idFornecedor, Produto_idProduto)
+VALUES 
+(1, 1);
+
+-- Inserção de pedidos
+INSERT INTO Pedido (StatusPedido, Descricao, Cliente_idCliente)
+VALUES 
+('Pendente', 'Compra de 1 Notebook', 1);
+
+-- Relacionamento entre produtos e pedidos
+INSERT INTO Relacao_Produto_Pedido (Produto_idProduto, Pedido_idPedido, Quantidade)
+VALUES 
+(1, 1, 1);
+
+-- Inserção de pagamentos
+INSERT INTO Pagamento (FormaPagamento, Detalhes)
+VALUES 
+('Cartão de Crédito', 'Visa ****1234');
+
+-- Relacionamento entre pedidos e pagamentos
+INSERT INTO Pedido_has_Pagamento (Pedido_idPedido, Pagamento_idPagamento)
+VALUES 
+(1, 1);
+
+-- Inserção de entregas
+INSERT INTO Entrega (CodRastreio, Status, Pedido_idPedido)
+VALUES 
+('BR12345XYZ', 'Em trânsito', 1);
+
+
+
+3. Queries mais complexas
+
+Recuperação simples com SELECT:
+SELECT Nome, Email, Tipo_Cliente 
+FROM Cliente;
+
+
+Filtro com WHERE:
+SELECT * 
+FROM Produto 
+WHERE Categoria = 'Eletrônicos';
+
+Atributos derivados:
+SELECT 
+    Nome, 
+    YEAR(CURDATE()) - YEAR(DataNascimento) AS Idade 
+FROM ClientePF;
+
+
+Ordenação:
+SELECT * 
+FROM Estoque 
+ORDER BY Local DESC;
+
+
+Filtro em grupos (HAVING):
+SELECT Produto_idProduto, SUM(Quantidade) AS Total_Estoque 
+FROM Produto_has_Estoque 
+GROUP BY Produto_idProduto 
+HAVING Total_Estoque > 10;
+
+
+Junções entre tabelas:
+SELECT 
+    c.Nome AS Cliente, 
+    p.Descricao AS Produto, 
+    e.Status AS Status_Entrega 
+FROM Pedido ped
+JOIN Cliente c ON ped.Cliente_idCliente = c.idCliente
+JOIN Relacao_Produto_Pedido rpp ON ped.idPedido = rpp.Pedido_idPedido
+JOIN Produto p ON rpp.Produto_idProduto = p.idProduto
+JOIN Entrega e ON ped.idPedido = e.Pedido_idPedido;
+
+
+### **1. Script SQL para criação do esquema do banco de dados**
+
+```sql
+-- Criação do banco de dados
+CREATE DATABASE Ecommerce;
+USE Ecommerce;
+
+-- Tabela Cliente
+CREATE TABLE Cliente (
+    idCliente INT PRIMARY KEY AUTO_INCREMENT,
+    Nome VARCHAR(45) NOT NULL,
+    Email VARCHAR(45),
+    Telefone VARCHAR(15),
+    Endereco VARCHAR(100),
+    Tipo_Cliente ENUM('PF', 'PJ') NOT NULL
+);
+
+-- Tabela ClientePF
+CREATE TABLE ClientePF (
+    idCliente INT PRIMARY KEY,
+    Nome VARCHAR(45) NOT NULL,
+    CPF CHAR(11) UNIQUE NOT NULL,
+    DataNascimento DATE,
+    FOREIGN KEY (idCliente) REFERENCES Cliente(idCliente)
+);
+
+-- Tabela ClientePJ
+CREATE TABLE ClientePJ (
+    idCliente INT PRIMARY KEY,
+    Nome_Fantasia VARCHAR(45) NOT NULL,
+    CNPJ CHAR(14) UNIQUE NOT NULL,
+    FOREIGN KEY (idCliente) REFERENCES Cliente(idCliente)
+);
+
+-- Tabela Produto
+CREATE TABLE Produto (
+    idProduto INT PRIMARY KEY AUTO_INCREMENT,
+    Descricao VARCHAR(45) NOT NULL,
+    Categoria VARCHAR(45)
+);
+
+-- Tabela Estoque
+CREATE TABLE Estoque (
+    idEstoque INT PRIMARY KEY AUTO_INCREMENT,
+    Local VARCHAR(45)
+);
+
+-- Tabela Produto_has_Estoque
+CREATE TABLE Produto_has_Estoque (
+    Produto_idProduto INT,
+    Estoque_idEstoque INT,
+    Quantidade INT,
+    PRIMARY KEY (Produto_idProduto, Estoque_idEstoque),
+    FOREIGN KEY (Produto_idProduto) REFERENCES Produto(idProduto),
+    FOREIGN KEY (Estoque_idEstoque) REFERENCES Estoque(idEstoque)
+);
+
+-- Tabela Fornecedor
+CREATE TABLE Fornecedor (
+    idFornecedor INT PRIMARY KEY AUTO_INCREMENT,
+    RazaoSocial VARCHAR(45),
+    CNPJ CHAR(14) UNIQUE NOT NULL
+);
+
+-- Tabela Disponibilizado_produto
+CREATE TABLE Disponibilizado_produto (
+    Fornecedor_idFornecedor INT,
+    Produto_idProduto INT,
+    PRIMARY KEY (Fornecedor_idFornecedor, Produto_idProduto),
+    FOREIGN KEY (Fornecedor_idFornecedor) REFERENCES Fornecedor(idFornecedor),
+    FOREIGN KEY (Produto_idProduto) REFERENCES Produto(idProduto)
+);
+
+-- Tabela Pedido
+CREATE TABLE Pedido (
+    idPedido INT PRIMARY KEY AUTO_INCREMENT,
+    StatusPedido VARCHAR(45),
+    Descricao VARCHAR(100),
+    Cliente_idCliente INT,
+    FOREIGN KEY (Cliente_idCliente) REFERENCES Cliente(idCliente)
+);
+
+-- Tabela Relacao_Produto_Pedido
+CREATE TABLE Relacao_Produto_Pedido (
+    Produto_idProduto INT,
+    Pedido_idPedido INT,
+    Quantidade INT,
+    PRIMARY KEY (Produto_idProduto, Pedido_idPedido),
+    FOREIGN KEY (Produto_idProduto) REFERENCES Produto(idProduto),
+    FOREIGN KEY (Pedido_idPedido) REFERENCES Pedido(idPedido)
+);
+
+-- Tabela Pagamento
+CREATE TABLE Pagamento (
+    idPagamento INT PRIMARY KEY AUTO_INCREMENT,
+    FormaPagamento VARCHAR(45),
+    Detalhes VARCHAR(100)
+);
+
+-- Tabela Pedido_has_Pagamento
+CREATE TABLE Pedido_has_Pagamento (
+    Pedido_idPedido INT,
+    Pagamento_idPagamento INT,
+    PRIMARY KEY (Pedido_idPedido, Pagamento_idPagamento),
+    FOREIGN KEY (Pedido_idPedido) REFERENCES Pedido(idPedido),
+    FOREIGN KEY (Pagamento_idPagamento) REFERENCES Pagamento(idPagamento)
+);
+
+-- Tabela Entrega
+CREATE TABLE Entrega (
+    idEntrega INT PRIMARY KEY AUTO_INCREMENT,
+    CodRastreio VARCHAR(45),
+    Status VARCHAR(45),
+    Pedido_idPedido INT,
+    FOREIGN KEY (Pedido_idPedido) REFERENCES Pedido(idPedido)
+);
+```
+
+---
+
+### **2. Script SQL para persistência de dados (dados fictícios)**
+
+```sql
+-- Inserção de dados em Cliente
+INSERT INTO Cliente (Nome, Email, Telefone, Endereco, Tipo_Cliente)
+VALUES 
+('João Silva', 'joao@gmail.com', '11987654321', 'Rua A, 123', 'PF'),
+('Empresa ABC', 'abc@empresa.com', '1134567890', 'Av. B, 456', 'PJ');
+
+-- Inserção em ClientePF
+INSERT INTO ClientePF (idCliente, Nome, CPF, DataNascimento)
+VALUES 
+(1, 'João Silva', '12345678901', '1985-06-15');
+
+-- Inserção em ClientePJ
+INSERT INTO ClientePJ (idCliente, Nome_Fantasia, CNPJ)
+VALUES 
+(2, 'Empresa ABC', '12345678000199');
+
+-- Inserção de produtos
+INSERT INTO Produto (Descricao, Categoria)
+VALUES 
+('Notebook', 'Eletrônicos'),
+('Cadeira Gamer', 'Móveis');
+
+-- Inserção em Estoque
+INSERT INTO Estoque (Local)
+VALUES 
+('Armazém 1'), 
+('Armazém 2');
+
+-- Produtos em estoque
+INSERT INTO Produto_has_Estoque (Produto_idProduto, Estoque_idEstoque, Quantidade)
+VALUES 
+(1, 1, 20),
+(2, 2, 50);
+
+-- Inserção em Fornecedor
+INSERT INTO Fornecedor (RazaoSocial, CNPJ)
+VALUES 
+('Tech Supplies', '98765432000188');
+
+-- Fornecimento de produtos
+INSERT INTO Disponibilizado_produto (Fornecedor_idFornecedor, Produto_idProduto)
+VALUES 
+(1, 1);
+
+-- Inserção de pedidos
+INSERT INTO Pedido (StatusPedido, Descricao, Cliente_idCliente)
+VALUES 
+('Pendente', 'Compra de 1 Notebook', 1);
+
+-- Relacionamento entre produtos e pedidos
+INSERT INTO Relacao_Produto_Pedido (Produto_idProduto, Pedido_idPedido, Quantidade)
+VALUES 
+(1, 1, 1);
+
+-- Inserção de pagamentos
+INSERT INTO Pagamento (FormaPagamento, Detalhes)
+VALUES 
+('Cartão de Crédito', 'Visa ****1234');
+
+-- Relacionamento entre pedidos e pagamentos
+INSERT INTO Pedido_has_Pagamento (Pedido_idPedido, Pagamento_idPagamento)
+VALUES 
+(1, 1);
+
+-- Inserção de entregas
+INSERT INTO Entrega (CodRastreio, Status, Pedido_idPedido)
+VALUES 
+('BR12345XYZ', 'Em trânsito', 1);
+```
+
+---
+
+### **3. Queries mais complexas**
+
+1. **Recuperação simples com SELECT:**
+   ```sql
+   SELECT Nome, Email, Tipo_Cliente 
+   FROM Cliente;
+   ```
+
+2. **Filtro com WHERE:**
+   ```sql
+   SELECT * 
+   FROM Produto 
+   WHERE Categoria = 'Eletrônicos';
+   ```
+
+3. **Atributos derivados:**
+   ```sql
+   SELECT 
+       Nome, 
+       YEAR(CURDATE()) - YEAR(DataNascimento) AS Idade 
+   FROM ClientePF;
+   ```
+
+4. **Ordenação:**
+   ```sql
+   SELECT * 
+   FROM Estoque 
+   ORDER BY Local DESC;
+   ```
+
+5. **Filtro em grupos (HAVING):**
+   ```sql
+   SELECT Produto_idProduto, SUM(Quantidade) AS Total_Estoque 
+   FROM Produto_has_Estoque 
+   GROUP BY Produto_idProduto 
+   HAVING Total_Estoque > 10;
+   ```
+
+6. **Junções entre tabelas:**
+   ```sql
+   SELECT 
+       c.Nome AS Cliente, 
+       p.Descricao AS Produto, 
+       e.Status AS Status_Entrega 
+   FROM Pedido ped
+   JOIN Cliente c ON ped.Cliente_idCliente = c.idCliente
+   JOIN Relacao_Produto_Pedido rpp ON ped.idPedido = rpp.Pedido_idPedido
+   JOIN Produto p ON rpp.Produto_idProduto = p.idProduto
+   JOIN Entrega e ON ped.idPedido = e.Pedido_idPedido;
+   ```
+
+---
+
+4. Perguntas que podem ser respondidas pelas consultas
+a. Quais clientes são do tipo Pessoa Física ou Jurídica?
+a. Quais produtos estão disponíveis na categoria "Eletrônicos"?
+a. Qual a idade de cada cliente pessoa física?
+d. Qual o status da entrega de cada pedido?
+e. Qual o total de produtos em estoque por produto?
+f. Quais produtos foram pedidos por cada cliente e qual é o status da entrega?
+
+
+PERGUNTAS DO DESAFIO:
+1. Quantos pedidos foram feitos por cada cliente?
+SELECT 
+    c.Nome AS Cliente, 
+    COUNT(p.idPedido) AS Total_Pedidos 
+FROM Cliente c
+LEFT JOIN Pedido p ON c.idCliente = p.Cliente_idCliente
+GROUP BY c.idCliente, c.Nome;
+
+
+2. Algum vendedor também é fornecedor?
+SELECT 
+    t.RazaoSocial AS Vendedor 
+FROM Fornecedor f
+JOIN Terceiro_Vendedor t ON f.RazaoSocial = t.RazaoSocial;
+
+
+3. Relação de produtos, fornecedores e estoques
+SELECT 
+    p.Descricao AS Produto, 
+    f.RazaoSocial AS Fornecedor, 
+    e.Local AS Local_Estoque, 
+    pe.Quantidade AS Quantidade_Estoque 
+FROM Produto p
+JOIN Disponibilizado_produto dp ON p.idProduto = dp.Produto_idProduto
+JOIN Fornecedor f ON dp.Fornecedor_idFornecedor = f.idFornecedor
+JOIN Produto_has_Estoque pe ON p.idProduto = pe.Produto_idProduto
+JOIN Estoque e ON pe.Estoque_idEstoque = e.idEstoque;
+
+
+4. Relação de nomes dos fornecedores e nomes dos produtos
+SELECT 
+    f.RazaoSocial AS Fornecedor, 
+    p.Descricao AS Produto 
+FROM Fornecedor f
+JOIN Disponibilizado_produto dp ON f.idFornecedor = dp.Fornecedor_idFornecedor
+JOIN Produto p ON dp.Produto_idProduto = p.idProduto;
